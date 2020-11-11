@@ -1,6 +1,8 @@
 from __future__ import annotations
+# from ast import literal_eval  # for testing sol1
 from dataclasses import dataclass, field
 import pandas as pd
+# import pickle # for testing sol2
 import requests
 from requests.utils import quote
 import time
@@ -18,7 +20,7 @@ class PatchDict(TypedDict):
 
 @dataclass
 class PlayerData:
-    """Class to represent a DataFrame of player's data fetched from 
+    """Class to represent a DataFrame of player's data fetched from
     OpenDota API.
     """
 
@@ -41,7 +43,7 @@ class PlayerData:
         """Gets a player's id to ease communication with API."""
         print("\nGanking player's id.")
 
-        data = requests.get("https://api.opendota.com/api/proPlayers").json()
+        data = requests.get(config.BASE_URL + "proPlayers").json()
         self.player_id = str(
             next(
                 player["account_id"]
@@ -74,7 +76,7 @@ class PlayerData:
         """
 
         query = quote(query)
-        data = requests.get(f"https://api.opendota.com/api/explorer?sql={query}").json()
+        data = requests.get(config.BASE_URL + "explorer?sql={query}").json()
         match_ids = []
         for row in data["rows"]:
             match_ids.append(row.get("match_id"))
@@ -90,7 +92,7 @@ class PlayerData:
         for m_id in self.match_ids:
             time.sleep(1.1)
             matches_data.append(
-                requests.get("http://api.opendota.com/api/matches/" + str(m_id)).json()
+                requests.get(config.BASE_URL + "matches/" + str(m_id)).json()
             )
 
         self.matches_data = pd.DataFrame(matches_data)[config.required_data]
@@ -224,14 +226,15 @@ class PlayerData:
             / self.player_data["deaths"],
             2,
         ).fillna(
-            round((self.player_data["kills"] + self.player_data["assists"]) / 1, 2)
+            round((self.player_data["kills"] + self.player_data["assists"])
+                / 1, 2)
         )
         return self
 
     def clean_roaming(self) -> PlayerData:
         """Replaces numeric representation with text labels."""
         self.player_data["is_roaming"] = self.player_data["is_roaming"].replace(
-            {True: 1, False: 0}
+            {True: 'Yes', False: 'No'}
         )
         return self
 
@@ -412,9 +415,25 @@ if __name__ == "__main__":
     player = PlayerData("mind_control", "7.27")
 
     player.get_data()
+
+    # SOLUTION 2
+    # outfile = open('player_class', 'wb')
+    # pickle.dump(player, outfile)
+    # outfile.close()
+    # infile = open('player_class', 'rb')
+    # player = pickle.load(infile)
+    # infile.close()
+
     #player.player_data.to_csv("data/mc_data_raw.csv", index=False)
 
-    #player.clean_data()
+    # CONVERTING STRING COLUMNS FOR CLEANING DATA SOLUTION 1
+    # cols_to_conv = ["radiant_team", "dire_team", "league", "dn_t", "lh_t", "xp_t", "gold_t", "kill_streaks", "radiant_xp_adv", "radiant_gold_adv"]
+    # converter = literal_eval
+    # player.player_data = pd.read_csv('data/mc_data_raw.csv', converters={col: converter for col in cols_to_conv})
+
+    player.clean_data()
+
     #player.player_data.to_csv("data/mc_data.csv", index=False)
 
+    print(player.player_data.sample())
     print("\nCleaned everything and copied data to separate file.")

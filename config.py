@@ -5,6 +5,8 @@ import pandas as pd
 pd.options.mode.use_inf_as_na = True
 
 
+BASE_URL = "https://api.opendota.com/api/"
+
 required_data = [
     "match_id",
     "duration",
@@ -67,9 +69,7 @@ def get_patches_data() -> list:
     """Gets current patch to use as default argument for initiating class
     instance.
     """
-    patches_data = requests.get(
-        "http://api.opendota.com/api/constants/patch"
-    ).json()
+    patches_data = requests.get(BASE_URL + "constants/patch").json()
     return patches_data
 
 
