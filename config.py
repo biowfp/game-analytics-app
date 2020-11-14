@@ -73,12 +73,6 @@ def get_patches_data() -> list:
     return patches_data
 
 
-#patches_json = get_patches_data()
-
-
 def get_current_patch(json: list) -> str:
     current_patch = id_to_name(json[-1]['id'], json)
     return current_patch
-
-
-#current_patch = get_current_patch(patches_json)

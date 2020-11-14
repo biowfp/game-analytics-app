@@ -2,10 +2,10 @@ from __future__ import annotations
 # from ast import literal_eval  # for testing sol1
 from dataclasses import dataclass, field
 import pandas as pd
-# import pickle # for testing sol2
 import requests
 from requests.utils import quote
 import time
+# from timeit import default_timer as timer
 from typing import List
 from typing_extensions import TypedDict
 
@@ -27,10 +27,10 @@ class PlayerData:
     player: str
     min_patch: str = None
     player_id: str = None
-    match_ids: List[int] = None  # add typing check
+    match_ids: List[int] = None
     patches_data: List[PatchDict] = field(
         default_factory=config.get_patches_data
-    )  # add typing check
+    )
     matches_data: pd.DataFrame = None
     player_stats: pd.DataFrame = None
     player_data: pd.DataFrame = None
@@ -76,7 +76,7 @@ class PlayerData:
         """
 
         query = quote(query)
-        data = requests.get(config.BASE_URL + "explorer?sql={query}").json()
+        data = requests.get(config.BASE_URL + f"explorer?sql={query}").json()
         match_ids = []
         for row in data["rows"]:
             match_ids.append(row.get("match_id"))
@@ -98,7 +98,9 @@ class PlayerData:
         self.matches_data = pd.DataFrame(matches_data)[config.required_data]
         print(f"Looted data on all {len(self.matches_data)} matches.")
 
-        self.matches_data = self.matches_data.dropna(subset=["match_id", "players"])
+        self.matches_data = self.matches_data.dropna(
+            subset=["match_id", "players"]
+            )
         print(f"Looking for missing rows. {len(self.matches_data)} games left.")
         return self
 
@@ -118,9 +120,8 @@ class PlayerData:
 
         print(f"Drafting {self.player}-only DataFrame...")
         for game, df in dfs.items():
-            player_df = player_df.append(
-                df[df.account_id.isin([self.player_id])], ignore_index=True
-            )
+            player_df = pd.concat([player_df, df])
+        player_df = player_df[player_df.account_id.isin([self.player_id])]
 
         print("Dropping unnecessary columns...")
         self.player_stats = player_df[config.core_stats]
@@ -223,8 +224,7 @@ class PlayerData:
         """Replaces KDA values with traditional formula of (K + A) / D."""
         self.player_data["kda"] = round(
             (self.player_data["kills"] + self.player_data["assists"])
-            / self.player_data["deaths"],
-            2,
+            / self.player_data["deaths"], 2
         ).fillna(
             round((self.player_data["kills"] + self.player_data["assists"])
                 / 1, 2)
@@ -240,7 +240,9 @@ class PlayerData:
 
     def clean_side(self) -> PlayerData:
         """Replaces numeric representation with text labels."""
-        self.player_data = self.player_data.rename(columns={"player_slot": "side"})
+        self.player_data = self.player_data.rename(
+            columns={"player_slot": "side"}
+            )
         sides = {
             0: "Radiant",
             1: "Radiant",
@@ -332,7 +334,8 @@ class PlayerData:
 
         gold_diff_per_time = self.player_data["radiant_gold_adv"].apply(pd.Series)
 
-        self.player_data = self.player_data.drop(columns=["radiant_gold_adv"]).assign(
+        self.player_data = self.player_data.drop(
+            columns=["radiant_gold_adv"]).assign(
             gold_diff_10=gold_diff_per_time[9],
             gold_diff_20=gold_diff_per_time[19],
             gold_diff_30=gold_diff_per_time[29],
@@ -354,7 +357,8 @@ class PlayerData:
 
         xp_diff_per_time = self.player_data["radiant_xp_adv"].apply(pd.Series)
 
-        self.player_data = self.player_data.drop(columns=["radiant_xp_adv"]).assign(
+        self.player_data = self.player_data.drop(
+            columns=["radiant_xp_adv"]).assign(
             xp_diff_10=xp_diff_per_time[9],
             xp_diff_20=xp_diff_per_time[19],
             xp_diff_30=xp_diff_per_time[29],
@@ -379,7 +383,8 @@ class PlayerData:
         """
         self.player_data["kill_streaks"] = (
             self.player_data["kill_streaks"]
-            .apply(lambda streak: max(streak.keys()) if "3" in streak.keys() else None)
+            .apply(lambda streak: max(
+                streak.keys()) if "3" in streak.keys() else None)
             .astype("float")
         )
         self.player_data = self.player_data.rename(
@@ -412,19 +417,9 @@ class PlayerData:
 
 
 if __name__ == "__main__":
-    player = PlayerData("mind_control", "7.27")
-
+    player = PlayerData("mind_control", "7.22")
     player.get_data()
-
-    # SOLUTION 2
-    # outfile = open('player_class', 'wb')
-    # pickle.dump(player, outfile)
-    # outfile.close()
-    # infile = open('player_class', 'rb')
-    # player = pickle.load(infile)
-    # infile.close()
-
-    #player.player_data.to_csv("data/mc_data_raw.csv", index=False)
+    player.player_data.to_csv("data/mc_data_raw.csv", index=False)
 
     # CONVERTING STRING COLUMNS FOR CLEANING DATA SOLUTION 1
     # cols_to_conv = ["radiant_team", "dire_team", "league", "dn_t", "lh_t", "xp_t", "gold_t", "kill_streaks", "radiant_xp_adv", "radiant_gold_adv"]
@@ -433,7 +428,5 @@ if __name__ == "__main__":
 
     player.clean_data()
 
-    #player.player_data.to_csv("data/mc_data.csv", index=False)
-
-    print(player.player_data.sample())
+    player.player_data.to_csv("data/mc_data.csv", index=False)
     print("\nCleaned everything and copied data to separate file.")
