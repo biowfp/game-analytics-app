@@ -130,3 +130,9 @@ dmypy.json
 
 #vs-code
 .vscode/
+
+#my.todo
+*.todo
+
+#data
+data/
