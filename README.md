@@ -1,5 +1,6 @@
 ## About
 ____
+The goal of the project is to allow DOTA 2 players to get stats and analysis of performance for their favourite teams and players without needing to collect and work with the data themselves. Right now it’s really easy to access the data and not at all (for average people) - to see what that data means.
 
 ## Usage
 ____
