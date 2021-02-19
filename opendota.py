@@ -1,11 +1,10 @@
 from __future__ import annotations
-# from ast import literal_eval  # for testing sol1
 from dataclasses import dataclass, field
 import pandas as pd
 import requests
 from requests.utils import quote
 import time
-# from timeit import default_timer as timer
+
 from typing import List
 from typing_extensions import TypedDict
 
@@ -420,11 +419,6 @@ if __name__ == "__main__":
     player = PlayerData("mind_control", "7.22")
     player.get_data()
     player.player_data.to_csv("data/mc_data_raw.csv", index=False)
-
-    # CONVERTING STRING COLUMNS FOR CLEANING DATA SOLUTION 1
-    # cols_to_conv = ["radiant_team", "dire_team", "league", "dn_t", "lh_t", "xp_t", "gold_t", "kill_streaks", "radiant_xp_adv", "radiant_gold_adv"]
-    # converter = literal_eval
-    # player.player_data = pd.read_csv('data/mc_data_raw.csv', converters={col: converter for col in cols_to_conv})
 
     player.clean_data()
 
