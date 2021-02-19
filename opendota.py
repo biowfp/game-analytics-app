@@ -423,4 +423,4 @@ if __name__ == "__main__":
     player.clean_data()
 
     player.player_data.to_csv("data/mc_data.csv", index=False)
-    print("\nCleaned everything and copied data to separate file.")
+    print("\nCleaned everything and copied data to a separate file.")
