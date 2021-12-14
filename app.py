@@ -35,6 +35,7 @@ def get_data(player_name, min_patch) -> None:
 
 
 def clean_data(data, patch_data):
+    """Super-function to clean data from OpenDota."""
     cleaner = DataCleaner()
     clean_data = (
         data
