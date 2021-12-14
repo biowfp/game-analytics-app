@@ -1,8 +1,8 @@
 import requests
 from config import BASE_URL
-import pandas as pd
 
-def id_to_name(x: float, requested_json: list) -> float:
+
+def id_to_name(id: float, requested_json: list) -> float:
     """Extracts a name of patch or hero for a corresponding id from
     requested json.
     """
@@ -29,18 +29,17 @@ def get_current_patch(json: list) -> str:
     return current_patch
 
 
-def split_col_by_time(df: pd.DataFrame,
-                      col: str,
-                      new_cols_names: list,
-                      timestamps: list):
-    values_per_time = df[col].apply(pd.Series)
-    data = df.drop(columns=[col]).assign(
-        new_cols_names[0] = values_per_time[timestamps[0]],
-        new_cols_names[1] = values_per_time[timestamps[1]],
-        new_cols_names[2] = values_per_time[timestamps[2]]
-    )
-    return data
+#def split_col_by_time(df: pd.DataFrame,
+#                      col: str,
+#                      new_cols_names: list,
+#                      timestamps: list):
+#    values_per_time = df[col].apply(pd.Series)
+#    data = df.drop(columns=[col]).assign(
+#        new_cols_names[0] = values_per_time[timestamps[0]],
+#        new_cols_names[1] = values_per_time[timestamps[1]],
+#        new_cols_names[2] = values_per_time[timestamps[2]]
+#    )
+#    return data
 
 def negate(values):
     return [value * -1 for value in values]
-    

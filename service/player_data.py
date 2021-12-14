@@ -20,7 +20,7 @@ class PatchDict(TypedDict):
 
 @dataclass
 class PlayerData:
-    """Class to represent a DataFrame of player's data 
+    """Class to represent a DataFrame of player's data
     fetched from OpenDota API.
     """
 
@@ -81,7 +81,7 @@ class PlayerData:
         for row in data["rows"]:
             match_ids.append(row.get("match_id"))
         self.match_ids = match_ids
-        print(f"Got those too! Wooping {len(self.match_ids)} matches!")
+        print(f"Got those too! Whooping {len(self.match_ids)} matches!")
         return self
 
     def get_matches_data(self) -> PlayerData:
@@ -89,19 +89,18 @@ class PlayerData:
         print("\nFarming dat OpenDota's match data...")
 
         matches_data = []
-        for m_id in self.match_ids:
+        for match_id in self.match_ids:
             time.sleep(1.1)
             matches_data.append(
-                requests.get(config.BASE_URL + "matches/" + str(m_id)).json()
+                requests.get(config.BASE_URL + "matches/" + str(match_id)).json()
             )
-
         self.matches_data = pd.DataFrame(matches_data)[config.required_data]
         print(f"Looted data on all {len(self.matches_data)} matches.")
 
         self.matches_data = self.matches_data.dropna(
             subset=["match_id", "players"]
             )
-        print(f"Looking for missing rows. {len(self.matches_data)} games left.")
+        print(f"Looking for rows without match_id or players' data. {len(self.matches_data)} games left.")
         return self
 
     def get_player_stats(self) -> PlayerData:
@@ -110,11 +109,10 @@ class PlayerData:
         """
         player_df = pd.DataFrame()
 
-        games = [f"{row}" for row in range(len(self.matches_data))]
-
+        games = list(range(len(self.matches_data)))
         print("\nBuilding DataFrames for every match...")
         dfs = {
-            game: pd.DataFrame(self.matches_data.players.iloc[int(game)])
+            game: pd.DataFrame(self.matches_data.players.iloc[game])
             for game in games
         }
 
@@ -138,11 +136,3 @@ class PlayerData:
         self.player_data = self.player_data.dropna()
         print(f"Dropped some more: {len(self.player_data)} games left!")
         return self
-
-    def get_data(self) -> None:
-        """Super-function to acquire data from OpenDota."""
-        self.get_player_id(
-        ).get_match_ids(
-        ).get_matches_data(
-        ).get_player_stats(
-        ).merge_player_data_with_match()

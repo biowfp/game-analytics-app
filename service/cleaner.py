@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import pandas as pd
 import requests
 
@@ -10,15 +10,15 @@ from utils.helpers import id_to_name, negate
 class DataCleaner:
     """Collection of methods to clean data from OpenDota API.
     """
-    
-    def clean_patch(self, data) -> PlayerData:
+
+    def clean_patch(self, data, patches_data) -> pd.DataFrame:
         """Replaces ids with corresponding names of patches."""
         data["patch"] = data["patch"].apply(
-            id_to_name, args=(self.patches_data,)
+            id_to_name, args=(patches_data,)
         )
-        return self
+        return data
 
-    def clean_team(self, data) -> PlayerData:
+    def clean_team(self, data) -> pd.DataFrame:
         """Extracts a team's name from a dict with team information."""
         data["radiant_team"] = data["radiant_team"].apply(
             lambda team: team["name"]
@@ -26,23 +26,23 @@ class DataCleaner:
         data["dire_team"] = data["dire_team"].apply(
             lambda team: team["name"]
         )
-        return self
+        return data
 
-    def clean_league(self, data) -> PlayerData:
+    def clean_league(self, data) -> pd.DataFrame:
         """Extracts a league's name from a dict with league information."""
         data["league"] = data["league"].apply(
             lambda league: league["name"]
         )
-        return self
+        return data
 
-    def clean_win(self, data) -> PlayerData:
+    def clean_win(self, data) -> pd.DataFrame:
         """Replaces numeric representation with text labels."""
         data["win"] = data["win"].replace(
             {1: "Win", 0: "Lose"}
             )
-        return self
+        return data
 
-    def clean_hero(self, data) -> PlayerData:
+    def clean_hero(self, data) -> pd.DataFrame:
         """Replaces ids with corresponding names of heroes."""
         heroes_data = requests.get(
             "http://api.opendota.com/api/constants/heroes"
@@ -51,23 +51,23 @@ class DataCleaner:
             id_to_name, args=(heroes_data,)
         )
         data = data.rename(columns={"hero_id": "hero"})
-        return self
+        return data
 
-    def clean_start_time(self, data) -> PlayerData:
+    def clean_start_time(self, data) -> pd.DataFrame:
         """Replaces timestamp with normal date."""
         data["start_time"] = pd.to_datetime(
             data["start_time"], unit="s"
             ).dt.strftime("%Y-%m-%d")
-        return self
+        return data
 
-    def clean_duration(self, data) -> PlayerData:
+    def clean_duration(self, data) -> pd.DataFrame:
         """Replaces timestamp with normal duration."""
         data["duration"] = pd.to_datetime(
             data["duration"], unit="s"
         ).dt.strftime("%M:%S")
-        return self
+        return data
 
-    def clean_kda(self, data) -> PlayerData:
+    def clean_kda(self, data) -> pd.DataFrame:
         """Replaces KDA values with traditional formula of (K + A) / D."""
         data["kda"] = round(
             (data["kills"] + data["assists"])
@@ -76,16 +76,16 @@ class DataCleaner:
             round((data["kills"] + data["assists"])
                 / 1, 2)
         )
-        return self
+        return data
 
-    def clean_roaming(self, data) -> PlayerData:
+    def clean_roaming(self, data) -> pd.DataFrame:
         """Replaces numeric representation with text labels."""
         data["is_roaming"] = data["is_roaming"].replace(
             {True: 'Yes', False: 'No'}
         )
-        return self
+        return data
 
-    def clean_side(self, data) -> PlayerData:
+    def clean_player_slot(self, data) -> pd.DataFrame:
         """Replaces numeric representation with text labels."""
         data = data.rename(
             columns={"player_slot": "side"}
@@ -103,22 +103,22 @@ class DataCleaner:
             132: "Dire",
         }
         data["side"] = data["side"].map(sides)
-        return self
+        return data
 
-    def clean_lane(self, data) -> PlayerData:
+    def clean_lane(self, data) -> pd.DataFrame:
         """Replaces numeric representation with text labels."""
         lanes = {1: "bot", 2: "mid", 3: "top"}
         data["lane"] = data["lane"].map(lanes)
-        return self
+        return data
 
-    def clean_lane_neutral_kills(self, data) -> PlayerData:
+    def clean_lane_neutral_kills(self, data) -> pd.DataFrame:
         """Renames columns to be more representative."""
         data = data.rename(
             columns={"lane_kills": "lane_creeps", "neutral_kills": "neutral_creeps"}
         )
-        return self
+        return data
 
-    def clean_denies(self, data) -> PlayerData:
+    def clean_dn_t(self, data) -> pd.DataFrame:
         """Extracts values for 10-, 20- and 30-minute marks from a list into
         new columns.
         """
@@ -128,9 +128,9 @@ class DataCleaner:
             dn_20=denies_per_time[19],
             dn_30=denies_per_time[29],
         )
-        return self
+        return data
 
-    def clean_lh(self, data) -> PlayerData:
+    def clean_lh_t(self, data) -> pd.DataFrame:
         """Extracts values for 10-, 20- and 30-minute marks from a list into
         new columns.
         """
@@ -140,9 +140,9 @@ class DataCleaner:
             lh_20=lh_per_time[19],
             lh_30=lh_per_time[29],
         )
-        return self
+        return data
 
-    def clean_nw(self, data) -> PlayerData:
+    def clean_gold_t(self, data) -> pd.DataFrame:
         """Extracts values for 10-, 20- and 30-minute marks from a list into
         new columns.
         """
@@ -152,9 +152,9 @@ class DataCleaner:
             nw_20=nw_per_time[19],
             nw_30=nw_per_time[29],
         )
-        return self
+        return data
 
-    def clean_xp(self, data) -> PlayerData:
+    def clean_xp_t(self, data) -> pd.DataFrame:
         """Extracts values for 10-, 20- and 30-minute marks from a list into
         new columns.
         """
@@ -164,9 +164,9 @@ class DataCleaner:
             xp_20=xp_per_time[19],
             xp_30=xp_per_time[29],
         )
-        return self
+        return data
 
-    def clean_gold_diff(self, data) -> PlayerData:
+    def clean_gold_adv(self, data) -> pd.DataFrame:
         """Extracts values for 10-, 20- and 30-minute marks from a list into
         new columns. Takes into consideration which side requested player
         played on.
@@ -183,9 +183,9 @@ class DataCleaner:
             gold_diff_20=gold_diff_per_time[19],
             gold_diff_30=gold_diff_per_time[29],
         )
-        return self
+        return data
 
-    def clean_xp_diff(self, data) -> PlayerData:
+    def clean_xp_adv(self, data) -> pd.DataFrame:
         """Extracts values for 10-, 20- and 30-minute marks from a list into
         new columns. Takes into consideration which side requested player
         played on.
@@ -202,9 +202,9 @@ class DataCleaner:
             xp_diff_20=xp_diff_per_time[19],
             xp_diff_30=xp_diff_per_time[29],
         )
-        return self
+        return data
 
-    def convert_to_int(self, data) -> PlayerData:
+    def convert_to_int(self, data) -> pd.DataFrame:
         """Converts appropriate columns to int."""
         to_int = [
             "dire_score",
@@ -214,9 +214,9 @@ class DataCleaner:
             "lane_creeps",
         ]
         data[to_int] = data[to_int].astype("int")
-        return self
+        return data
 
-    def get_highest_streak(self, data) -> PlayerData:
+    def get_highest_streak(self, data) -> pd.DataFrame:
         """Replaces dict with its' max key indicating highest kill streak
         achieved by the player in a particular game.
         """
@@ -229,28 +229,4 @@ class DataCleaner:
         data = data.rename(
             columns={"kill_streaks": "highest_ks"}
         )
-        return self
-
-
-def clean_data(data):
-    cleaner = DataCleaner()
-    cleaner.clean_patch(data
-    ).clean_team(data
-    ).clean_league(data
-    ).clean_hero(data
-    ).clean_win(data
-    ).clean_start_time(data
-    ).clean_duration(data
-    ).clean_kda(data
-    ).clean_roaming(data
-    ).clean_side(data
-    ).clean_denies(data
-    ).clean_lh(data
-    ).clean_nw(data
-    ).clean_xp(data
-    ).clean_lane(data
-    ).clean_lane_neutral_kills(data
-    ).convert_to_int(data
-    ).get_highest_streak(data
-    ).clean_xp_diff(data
-    ).clean_gold_diff(data)
+        return data
