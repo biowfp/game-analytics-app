@@ -17,14 +17,15 @@ def id_to_name(id: float, requested_json: list) -> float:
 
 
 def get_patches_data() -> list:
-    """Gets current patch to use as default argument for initiating class
-    instance.
-    """
+    """Gets a json of patch data from OpenDota"""
     patches_data = requests.get(BASE_URL + "constants/patch").json()
     return patches_data
 
 
 def get_current_patch(json: list) -> str:
+    """Gets current patch to use as default argument for initiating class
+    instance.
+    """
     current_patch = id_to_name(json[-1]['id'], json)
     return current_patch
 
@@ -42,4 +43,5 @@ def get_current_patch(json: list) -> str:
 #    return data
 
 def negate(values):
+    """Turns values in a list to negatives"""
     return [value * -1 for value in values]
