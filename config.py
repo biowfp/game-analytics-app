@@ -1,4 +1,3 @@
-import requests
 import pandas as pd
 
 
@@ -47,32 +46,3 @@ core_stats = [
     "is_roaming",
 ]
 supp_stats = None
-
-
-def id_to_name(x: float, requested_json: list) -> float:
-    """Extracts a name of patch or hero for a corresponding id from
-    requested json.
-    """
-    if isinstance(requested_json, dict):
-        for k, v in requested_json.items():
-            if v["id"] == int(x):
-                x = v["localized_name"]
-                return x
-    else:
-        for d in requested_json:
-            if d["id"] == int(x):
-                x = d["name"]
-                return x
-
-
-def get_patches_data() -> list:
-    """Gets current patch to use as default argument for initiating class
-    instance.
-    """
-    patches_data = requests.get(BASE_URL + "constants/patch").json()
-    return patches_data
-
-
-def get_current_patch(json: list) -> str:
-    current_patch = id_to_name(json[-1]['id'], json)
-    return current_patch
