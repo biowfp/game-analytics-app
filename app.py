@@ -1,7 +1,4 @@
-import pandas as pd
 import streamlit as st
-import requests
-import time
 
 from service.player_data import PlayerData
 from service.cleaner import DataCleaner
