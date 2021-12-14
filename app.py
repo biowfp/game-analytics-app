@@ -1,8 +1,9 @@
+from requests.api import patch
 import streamlit as st
 
 from service.player_data import PlayerData
 from service.cleaner import DataCleaner
-from utils.helpers import get_patches_data
+from utils.helpers import get_patches_data, get_current_patch
 
 st.title("That's gonna be dota analysis app")
 
@@ -11,14 +12,15 @@ st.title("That's gonna be dota analysis app")
 player_name = st.sidebar.text_input(
     "Enter player's name (case_insensitive, like 'mind_control')")
 min_patch = st.sidebar.text_input(
-    "Enter minimal patch here, like 7.27 (App requests data up to last match played, starting from that patch)")  # make slider (min-max)
+    "Enter minimal patch here, like 7.27. Defaults to current patch. (App requests data up to last match played, starting from that patch)")  # make slider (min-max)
 patch_data = get_patches_data()
+current_patch = get_current_patch(patch_data)
 run = st.sidebar.button('Run')
 
 
 # get data of a player
 @st.cache
-def get_data(player_name, min_patch) -> None:
+def get_data(player_name, min_patch=current_patch) -> None:
     """Super-function to acquire data from OpenDota."""
     player = PlayerData(player=player_name, min_patch=min_patch)
 
@@ -63,7 +65,23 @@ def clean_data(data, patch_data):
 
 if run:
     if player_name and min_patch:
-        player_data = get_data(player_name, min_patch)
+        try:
+            player_data = get_data(player_name, min_patch)
+        except (StopIteration, KeyError):
+            st.warning('''This player seems to not exist, make sure you
+                entered the name correctly including special symbols.''')
+            st.stop()
+        cleaned_data = clean_data(player_data.copy(), patch_data)
+
+        st.write("Data sample after cleaning")
+        st.write(cleaned_data.sample())
+    elif player_name:
+        try:
+            player_data = get_data(player_name)
+        except (StopIteration, KeyError):
+            st.warning('''This player seems to not exist, make sure you
+                entered the name correctly including special symbols.''')
+            st.stop()
         cleaned_data = clean_data(player_data.copy(), patch_data)
 
         st.write("Data sample after cleaning")
